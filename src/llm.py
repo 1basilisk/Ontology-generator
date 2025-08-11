@@ -24,6 +24,7 @@ def generate_ontology_fragment(prompt):
             "headers": dict(response.headers) if hasattr(response, "headers") else None,
             "output": response.choices[0].message.content.strip()
         })
+        return response.choices[0].message.content.strip()
 
     except GroqError as e:
         error_info = str(e)
@@ -52,5 +53,4 @@ def generate_ontology_fragment(prompt):
         print(f"Error generating ontology fragment: {e}")
         logging.error(f"Error generating ontology fragment: {e}\n")
         return ""
-    return response.choices[0].message.content.strip()
 

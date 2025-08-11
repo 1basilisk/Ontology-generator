@@ -73,7 +73,6 @@ def run_pipeline(skip_raw=False, skip_ocr=False):
 
     #processing text files and generating ontology fragments
     for doc_path in doc_paths_processed: 
-        print("here")
         if doc_path.endswith('.txt'):
             with open(doc_path, 'r', encoding='utf-8') as f:
                 text = f.read()
@@ -89,7 +88,7 @@ def run_pipeline(skip_raw=False, skip_ocr=False):
                 logging.info(f"Generated fragment for chunk: {i}\n")
                 
                 # print("waiting for 60 seconds before processing the next chunk...")
-                # time.sleep(60)
+                time.sleep(60)
 
 
                 fragment_filename = f"data/ontology_fragments/{os.path.basename(doc_path)}_{chunks.index(chunk)}.ttl"
