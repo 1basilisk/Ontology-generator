@@ -1,11 +1,10 @@
-# === src/ocr_engine.py ===
 import base64
 import io
 import os
 from PIL import Image
 from dotenv import load_dotenv
 from groq import Groq   
-
+import logging
 
 def encode_image_to_base64(image_path):
     with Image.open(image_path) as img:
@@ -50,17 +49,20 @@ def extract_text_from_image(image_path):
         ]
     
     messages = prompt
-    completion = client.chat.completions.create(
-        model=os.getenv("GROQ_MODEL"),
-        messages=messages,
-        max_tokens=5000,
-        temperature=0.5,
-        top_p=0.9,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=None,
-        stream=False)
-    
+    try:
+        completion = client.chat.completions.create(
+            model=os.getenv("GROQ_MODEL"),
+            messages=messages,
+            max_tokens=5000,
+            temperature=0.5,
+            top_p=0.9,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=None,
+            stream=False)
+    except Exception as e:
+        print(f"error connecting to llm {e}")
+        logging.error(f"error connecting to llm {e}\n") 
 
     return completion.choices[0].message.content.strip()
 

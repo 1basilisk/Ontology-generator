@@ -11,8 +11,10 @@ class OntologyBuilder:
             
             new_graph.parse(data=turtle_str, format='turtle')
             self.graph += new_graph
+            return True
         except Exception as e:
-            print(f"Error parsing fragment: {e}")
+        
+            return False
 
     def get_current_ontology_ttl(self):
         return self.graph.serialize(format='turtle')

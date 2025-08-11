@@ -3,3 +3,4 @@ output/
 .env
 .venv
 src/__pycache__/
+app.log
