@@ -117,7 +117,7 @@ This project automates the extraction of structured ontological knowledge from r
   Set your API keys and parameters here:
   ```
   GROQ_API_KEY="your_groq_api_key"
-  GROQ_MODEL="openai/gpt-oss-120b"
+  GROQ_MODEL="model name"
   BASE_URI="http://example.com/ontology"
   CHUNK_SIZE=1000
   ```
@@ -211,4 +211,4 @@ For more details, see the code in each module:
 - `src/prompt_builder.py`
 - `src/splitter.py`
 - `src/document_loader.py`
-- `src/responseLogger.py
+- `src/responseLogger.py`
