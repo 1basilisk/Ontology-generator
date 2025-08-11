@@ -3,8 +3,13 @@ import io
 import os
 from PIL import Image
 from dotenv import load_dotenv
-from groq import Groq   
+from groq import Groq, GroqError
 import logging
+from src.responseLogger import logResponse
+
+
+load_dotenv()
+client = Groq()
 
 def encode_image_to_base64(image_path):
     with Image.open(image_path) as img:
@@ -15,8 +20,7 @@ def encode_image_to_base64(image_path):
 def extract_text_from_image(image_path):
     encoded_image = encode_image_to_base64(image_path)
 
-    load_dotenv()
-    client = Groq()
+
     prompt = [
             {
                 "role": "system",
@@ -60,9 +64,40 @@ def extract_text_from_image(image_path):
             presence_penalty=0,
             stop=None,
             stream=False)
+        
+        logResponse({
+            "status": "success",
+            "headers": dict(completion.headers) if hasattr(completion, "headers") else None,
+            "output": completion.choices[0].message.content.strip(),
+            "image_path": image_path
+        })
+        
+        return completion.choices[0].message.content.strip()
+        
+    except GroqError as e:
+        error_info = str(e)
+        headers = getattr(e, "headers", None)
+        logResponse({
+            "status": "groq_error",
+            "error": error_info,
+            "headers": dict(headers) if headers else None,
+            "image_path": image_path
+        })
+
+        if any(word in error_info.lower() for word in ["quota", "exceeded", "limit"]):
+            print("⚠️ Quota exhausted")
+            logging.error("⚠️ Quota exhausted\n")
+            return ""
+
     except Exception as e:
-        print(f"error connecting to llm {e}")
-        logging.error(f"error connecting to llm {e}\n") 
+        error_info = str(e)
+        logResponse({
+            "status": "exception",
+            "error": error_info,
+            "headers": None,
+            "image_path": image_path
+        })
 
-    return completion.choices[0].message.content.strip()
-
+        print(f"Error connecting to LLM: {error_info}")
+        logging.error(f"Error connecting to LLM: {error_info}\n")
+        return ""

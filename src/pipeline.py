@@ -10,10 +10,11 @@ import logging
 from src.pdfProcessor import convert_pdf_to_images
 import shutil
 
-def run_pipeline():
+def run_pipeline(skip_raw=False, skip_ocr=False):
     logging.info("Starting ontology generation pipeline")
-    doc_paths_raw = load_documents("data/raw")
-    images_dir = "data/images"
+    doc_paths_raw = load_documents("data/raw") if not skip_raw else []
+    images_dir = "data/images" 
+
     doc_paths_processed = load_documents("data/processed")
     BASE_URI = os.getenv("BASE_URI", "http://example.com/ontology")
     CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 1000))
@@ -49,7 +50,7 @@ def run_pipeline():
             continue
 
     #running OCR on images
-    for doc_path in load_documents(images_dir):
+    for doc_path in load_documents(images_dir) if not skip_ocr else []:
         if doc_path.endswith(('.png', '.jpg', '.jpeg')):
             text = extract_text_from_image(doc_path)
             if not text:
@@ -71,8 +72,8 @@ def run_pipeline():
             continue
 
     #processing text files and generating ontology fragments
-
     for doc_path in doc_paths_processed: 
+        print("here")
         if doc_path.endswith('.txt'):
             with open(doc_path, 'r', encoding='utf-8') as f:
                 text = f.read()
