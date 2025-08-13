@@ -7,7 +7,7 @@ from src.responseLogger import logResponse
 load_dotenv()
 client = Groq()
 
-def generate_ontology_fragment(prompt):
+def run_llm(prompt):
 
     try:
         response = client.chat.completions.create(

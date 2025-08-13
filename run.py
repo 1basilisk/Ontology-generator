@@ -8,6 +8,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the ontology pipeline")
     parser.add_argument("--skip-raw", action="store_true", help="Skip processing of raw documents")
     parser.add_argument("--skip-ocr", action="store_true", help="Skip OCR on images")
+    parser.add_argument("--review", action="store_true", help="Run on review files only")
     args = parser.parse_args()
 
     # --- Ensure logs folder exists ---
@@ -24,4 +25,4 @@ if __name__ == "__main__":
     logging.info(f"Pipeline started (skip_raw={args.skip_raw}, skip_ocr={args.skip_ocr})")
 
     # --- Run pipeline with args ---
-    run_pipeline(skip_raw=args.skip_raw, skip_ocr=args.skip_ocr)
+    run_pipeline(skip_raw=args.skip_raw, skip_ocr=args.skip_ocr, review=args.review)
