@@ -142,15 +142,15 @@ def run_pipeline(skip_raw=False, skip_ocr=False, review=False  ):
                         frag_file.write(fragment)
 
 
-                if (i == len(chunks) -1 ):
-                    logging.info(f"Validating ontology for {doc_path}...\n")
-                    isValid = ob.validate_ontology_llm()
-                    if not isValid:
-                        print(f"Ontology validation failed for {doc_path}.")
-                        logging.error(f"Ontology validation failed for {doc_path}.\n")
-                    else:
-                        print(f"Ontology validation successful for {doc_path}.")
-                        logging.info(f"Ontology validation successful for {doc_path}.\n")
+                # if (i == len(chunks) -1 ):
+                #     logging.info(f"Validating ontology for {doc_path}...\n")
+                #     isValid = ob.validate_ontology_llm()
+                #     if not isValid:
+                #         print(f"Ontology validation failed for {doc_path}.")
+                #         logging.error(f"Ontology validation failed for {doc_path}.\n")
+                #     else:
+                #         print(f"Ontology validation successful for {doc_path}.")
+                #         logging.info(f"Ontology validation successful for {doc_path}.\n")
                     
 
         else:

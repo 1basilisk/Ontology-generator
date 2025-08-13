@@ -1,56 +1,51 @@
-from groq import Groq, GroqError
 import os
-from dotenv import load_dotenv
 import logging
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from src.responseLogger import logResponse
 
 load_dotenv()
-client = Groq()
 
-def run_llm(prompt):
+
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# If you want to use Vertex AI instead, uncomment and configure:
+# client = genai.Client(vertexai=True, project="your-gcp-project", location="us-central1")
+
+
+def run_llm(prompt: str) -> str:
+    """
+    Sends prompt to Gemini model and returns output text.
+    Logs full response or any errors.
+    """
+    model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
     try:
-        response = client.chat.completions.create(
-            model=os.getenv("GROQ_MODEL"),
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=5000,
-            temperature=0.5,
-            top_p=0.9,
-            frequency_penalty=0,
-            presence_penalty=0
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                temperature=0.5,
+                top_p=0.9,
+                max_output_tokens=5000
+            )
         )
+        text = response.text.strip()
+
         logResponse({
             "status": "success",
-            "headers": dict(response.headers) if hasattr(response, "headers") else None,
-            "output": response.choices[0].message.content.strip()
+            "model": model_name,
+            "response": text
         })
-        return response.choices[0].message.content.strip()
-
-    except GroqError as e:
-        error_info = str(e)
-        headers = getattr(e, "headers", None)
-        logResponse({
-            "status": "groq_error",
-            "error": error_info,
-            "headers": dict(headers) if headers else None,
-        })
-
-        if "quota" in str(e).lower() or "exceeded" in str(e).lower() or "limit" in str(e).lower():
-            print("⚠️ Quota exhausted")
-            logging.error("⚠️ Quota exhausted\n")
-            return ""
-        
+        return text
 
     except Exception as e:
-        error_info = str(e)
-        headers = getattr(e, "headers", None)
+        error_str = str(e)
+        logging.error(f"Gemini API error: {error_str}")
         logResponse({
-            "status": "exception",
-            "error": error_info,
-            "headers": dict(headers) if headers else None,
+            "status": "gemini_error",
+            "model": model_name,
+            "error": error_str
         })
-
-        print(f"Error generating ontology fragment: {e}")
-        logging.error(f"Error generating ontology fragment: {e}\n")
         return ""
-
