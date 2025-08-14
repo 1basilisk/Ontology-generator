@@ -1,37 +1,32 @@
 import os
 import logging
 import io
-import base64
 from PIL import Image
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from src.responseLogger import logResponse
 
-# Load environment variables
 load_dotenv()
 
-# Initialize Gemini API client
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def encode_image_to_bytes(image_path):
-    """Read an image file and return bytes."""
+    """Read image and return raw bytes."""
     with Image.open(image_path) as img:
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG")
-        return buffered.getvalue()
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
 
-def extract_text_from_image(image_path):
-    """Extract text from image using Google Gemini Vision API."""
+def extract_text_from_image(image_path: str) -> str:
     try:
         image_bytes = encode_image_to_bytes(image_path)
 
-        # Call Gemini API with image + instruction
-        completion = client.models.generate_content(
+        response = client.models.generate_content(
             model=os.getenv("GEMINI_MODEL", "gemini-1.5-pro"),
             contents=[
-                types.ImageMessage(content=image_bytes),
-                "You are an AI assistant. Extract all readable text from the image and return only the text as plain string."
+                types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
+                "You are an AI assistant. Extract all readable text from this image and return only the text as plain output."
             ],
             config=types.GenerateContentConfig(
                 temperature=0.5,
@@ -40,31 +35,22 @@ def extract_text_from_image(image_path):
             )
         )
 
-        text_output = completion.text.strip()
-
+        text = response.text.strip()
         logResponse({
             "status": "success",
-            "headers": None,  # Gemini SDK doesn't expose HTTP headers
-            "output": text_output,
+            "model": os.getenv("GEMINI_MODEL"),
+            "output": text,
             "image_path": image_path
         })
-
-        return text_output
+        return text
 
     except Exception as e:
-        error_info = str(e)
+        err = str(e)
+        logging.error(f"Gemini OCR error: {err}")
         logResponse({
             "status": "gemini_error",
-            "error": error_info,
-            "headers": None,
+            "model": os.getenv("GEMINI_MODEL"),
+            "error": err,
             "image_path": image_path
         })
-
-        if any(word in error_info.lower() for word in ["quota", "exceeded", "limit"]):
-            print("⚠️ Quota exhausted")
-            logging.error("⚠️ Quota exhausted\n")
-            return ""
-
-        print(f"Error connecting to Gemini: {error_info}")
-        logging.error(f"Error connecting to Gemini: {error_info}\n")
         return ""
